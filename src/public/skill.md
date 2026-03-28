@@ -1,15 +1,15 @@
 ---
 name: ddash
 description: >
-  Generate shareable diagram URLs using ddash syntax. Use when the user asks to
+  Generate shareable diagram URLs using Mermaid syntax. Use when the user asks to
   create, draw, visualize, or diagram a flow, architecture, sequence, or system.
   Triggers on: "diagram", "draw", "visualize", "flow diagram", "sequence diagram",
   "architecture diagram", "ddash".
 ---
 
-# ddash — Diagrams in a URL
+# ddash — Interactive Diagrams in a URL
 
-Generate a diagram from text and open it in the browser. The diagram source is compressed into the URL hash — no server, no storage.
+Generate a diagram from Mermaid syntax and open it in the browser. The diagram source is compressed into the URL hash — no server, no storage. Diagrams are interactive: drag nodes, click to highlight, hover for tooltips, zoom and pan.
 
 **Base URL:** `https://ddash.zweibel-cocaine.com/`
 
@@ -23,160 +23,201 @@ Before writing syntax, make three decisions:
 
 | User says | Use | Why |
 |-----------|-----|-----|
-| "architecture", "system design", "how X connects to Y" | `@flow` | Shows components and their relationships spatially |
-| "what happens when", "request flow", "API call sequence" | `@seq` | Shows messages between actors over time |
-| General "diagram this" / "visualize" | `@flow` | Default. Most things are graphs. |
+| "architecture", "system design", "how X connects to Y" | `flowchart` | Shows components and their relationships spatially |
+| "what happens when", "request flow", "API call sequence" | `sequenceDiagram` | Shows messages between actors over time |
+| General "diagram this" / "visualize" | `flowchart` | Default. Most things are graphs. |
 
-**2. Direction — which way does it flow?** (only for `@flow`)
+**2. Direction — which way does it flow?** (only for flowcharts)
 
 | Choose | When |
 |--------|------|
 | `LR` (left to right) | Pipelines, request→response chains, horizontal data flow. Wide diagrams. |
 | `TB` (top to bottom) | Decision trees, hierarchies, vertical branching. Tall diagrams. Default. |
 
+Also available: `RL` (right to left), `BT` (bottom to top).
+
 **3. Shapes — use them semantically, not decoratively.**
 
 | Shape | Syntax | Use for |
 |-------|--------|---------|
-| Box | `Name` | Services, components, actors — the default |
-| Diamond | `<Name>` | Decision points, conditionals, validation gates |
-| Rounded | `(Name)` | Statuses, outcomes, results, load balancers |
-| Cylinder | `|Name|` | Databases, caches, any persistent storage |
+| Box | `A[Label]` | Services, components, actors — the default |
+| Rounded | `A(Label)` | Statuses, outcomes, results, load balancers |
+| Stadium | `A([Label])` | Pill-shaped — actions, events, endpoints |
+| Diamond | `A{Label}` | Decision points, conditionals, validation gates |
+| Cylinder | `A[(Label)]` | Databases, caches, any persistent storage |
+| Circle | `A((Label))` | External entities, entry points |
 
 ## Design Rules
 
 - **Label every edge.** Unlabeled arrows are ambiguous. Even "request" or "data" is better than nothing.
 - **5-15 nodes is the sweet spot.** Under 5 is trivial. Over 15 gets unreadable. If larger, group related nodes.
-- **Groups for boundaries.** Use `{ }` groups to show system boundaries, deployment zones, or ownership domains — not just for visual nesting.
+- **Subgraphs for boundaries.** Use `subgraph` / `end` to show system boundaries, deployment zones, or ownership domains.
 - **One concept per diagram.** Don't cram auth flow + data pipeline + deployment topology into one diagram. Split them.
-- **Node names are labels.** They should be human-readable: `Auth Service` not `auth_svc`. The renderer handles spacing.
-- **Prefer making a best-effort diagram** over asking the user clarifying questions. You can always iterate. A wrong diagram teaches more than a question.
+- **Node IDs are short, labels are readable.** Use `DB[(Database)]` not `Database[(Database)]`. The ID is for wiring, the label is for humans.
+- **Prefer making a best-effort diagram** over asking the user clarifying questions. You can always iterate.
 
 ## Syntax Reference
+
+### Flowcharts
+
+Start with `flowchart <direction>` (or `graph <direction>`).
+
+```
+flowchart LR
+  A[Box] --> B(Rounded)
+  B --> C{Diamond}
+  C -->|yes| D[(Cylinder)]
+  C -->|no| E((Circle))
+  E --> F([Stadium])
+```
 
 ### Edges
 
 ```
-A -> B                  # directed
-A -> B: label           # directed with label
-A <-> B                 # bidirectional
-A -- B                  # undirected
-A --> B                 # dashed (async, optional, external)
-A -x B                  # crossed (error, rejected, blocked)
-A -> B -> C -> D: done  # chain — creates A->B, B->C, C->D (label on last)
+A --> B                   %% solid arrow
+A -->|label| B            %% solid with label
+A -- label --> B          %% solid with label (alt syntax)
+A -.-> B                  %% dashed arrow
+A -.->|label| B           %% dashed with label
+A ==> B                   %% thick arrow (renders as solid)
+A <--> B                  %% bidirectional
+A --x B                   %% crossed (error, rejected)
+A --> B --> C              %% chain
 ```
 
-### Shapes (on first mention only, bare name after)
+### Subgraphs
 
 ```
-<Decision>              # diamond
-(Cache)                 # rounded
-|Database|              # cylinder
+subgraph Title
+  A --> B
+end
+
+subgraph myId [Custom Title]
+  C --> D
+end
 ```
 
-### Groups
-
-```
-Backend {
-  API -> |DB|: query
-  API -> (Cache): check
-}
-```
-
-Groups can nest. Nodes belong to the innermost group where they first appear.
+Subgraphs can nest. Nodes belong to the innermost subgraph where they first appear.
 
 ### Comments
 
 ```
-# Full-line comment
-A -> B   # inline comment
+%% This is a comment
+A --> B  %% inline comment
 ```
 
-### Sequence Diagrams (@seq)
+### Sequence Diagrams
 
-Participants auto-ordered as columns by first appearance. Messages flow top to bottom.
+Start with `sequenceDiagram`. Participants auto-ordered by first appearance.
 
 ```
-@seq
+sequenceDiagram
+  participant A as Alice
+  participant B as Bob
 
-User -> Frontend: click buy
-Frontend -> API: POST /order
-API -> |DB|: insert
-DB -> API: id
-API -> Frontend: 201
-Frontend -> User: done
+  A ->> B: hello
+  B -->> A: hi back
+  A -x B: error
 ```
 
-**Self-messages:** `Auth -> Auth: validate token`
+**Arrow types:**
+- `->>` solid arrow
+- `-->>` dashed arrow (response/async)
+- `-x` crossed (error/rejected)
+- `->` open arrow
 
-**Dividers:** `--- section name ---`
+**Self-messages:** `Auth ->> Auth: validate token`
 
 **Conditional blocks:**
 
 ```
-alt success {
-  API -> User: 200
-} else {
-  API -> User: 401
-}
+alt success
+  API -->> User: 200
+else failure
+  API -->> User: 401
+end
 ```
 
-Block types: `alt` (if/else), `opt` (optional), `loop` (repetition).
+Block types: `alt` (if/else), `opt` (optional), `loop` (repetition), `par` (parallel).
+
+## Interactivity
+
+Flowchart diagrams are interactive:
+- **Drag nodes** — grab any node and reposition it; edges follow automatically
+- **Click to highlight** — click a node to highlight it and all connected edges; click again or click empty space to deselect
+- **Hover tooltips** — hover a node to see its ID and connections
+- **Zoom** — mouse wheel to zoom in/out (zooms toward cursor)
+- **Pan** — click empty space and drag to pan
+- **Reset** — double-click empty space to reset view
 
 ## Examples
 
 ### Architecture (LR — horizontal data flow through layers)
 
 ```
-@flow LR
+flowchart LR
+  Client --> LB([Load Balancer])
 
-Client -> (LB): request
+  subgraph Services
+    LB -->|route| Auth
+    LB -->|route| Products
+    Auth --> Redis[(Redis)]
+    Products --> Postgres[(Postgres)]
+  end
 
-Services {
-  (LB) -> Auth: route
-  (LB) -> Products: route
-  Auth -> |Redis|: sessions
-  Products -> |Postgres|: query
-}
-
-Products -> Client: response
+  Products -->|response| Client
 ```
 
 ### Decision Tree (TB — vertical branching from top)
 
 ```
-@flow TB
+flowchart TB
+  Request -->|check| Authn{Authenticated?}
 
-Request -> <Authenticated>: check
-Authenticated -> <Authorized>: yes
-Authenticated -> (401 Unauthorized): no
-Authorized -> Process: yes
-Authorized -> (403 Forbidden): no
-Process -> |Database|: save
-Database -> (200 OK): success
-Database -> (500 Error): failure
+  Authn -->|yes| Authz{Authorized?}
+  Authn -->|no| R401([401 Unauthorized])
+
+  Authz -->|yes| Process
+  Authz -->|no| R403([403 Forbidden])
+
+  Process -->|save| DB[(Database)]
+  DB -->|success| R200([200 OK])
+  DB -->|failure| R500([500 Error])
+```
+
+### State Machine (LR — state transitions)
+
+```
+flowchart LR
+  Idle -->|start| Loading
+  Loading -->|success| Ready
+  Loading -->|error| Error
+  Ready -->|edit| Dirty
+  Dirty -->|save| Saving
+  Saving -->|success| Ready
+  Saving -->|error| Error
+  Error -->|retry| Loading
 ```
 
 ### Sequence (temporal message flow with error handling)
 
 ```
-@seq
+sequenceDiagram
+  Client ->> Gateway: request
+  Gateway ->> Auth: validate token
+  Auth ->> Auth: check expiry
 
-Client -> Gateway: request
-Gateway -> Auth: validate token
-Auth -> Auth: check expiry
-
-alt valid {
-  Auth -> Gateway: 200 OK
-  Gateway -> API: forward
-  API -> |DB|: query
-  DB -> API: result
-  API -> Gateway: response
-  Gateway -> Client: 200
-} else {
-  Auth -> Gateway: 401
-  Gateway -> Client: unauthorized
-}
+  alt valid
+    Auth -->> Gateway: 200 OK
+    Gateway ->> API: forward
+    API ->> DB: query
+    DB -->> API: result
+    API -->> Gateway: response
+    Gateway -->> Client: 200
+  else expired
+    Auth -->> Gateway: 401
+    Gateway -->> Client: unauthorized
+  end
 ```
 
 ## Opening the Diagram

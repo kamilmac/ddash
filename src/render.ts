@@ -1,6 +1,6 @@
 import type { LayoutResult, LayoutNode, LayoutEdge, LayoutGroup } from './layout.ts'
 import type { NodeShape } from './parser.ts'
-import { svgEl, boxShape, diamondShape, roundedShape, cylinderShape } from './shapes.ts'
+import { svgEl, boxShape, diamondShape, roundedShape, cylinderShape, circleShape } from './shapes.ts'
 import { NODE_FONT, EDGE_FONT, GROUP_FONT } from './measure.ts'
 
 function fontToCss(font: string): Record<string, string> {
@@ -20,6 +20,7 @@ function nodeShapeEl(shape: NodeShape, cx: number, cy: number, w: number, h: num
     case 'diamond': return diamondShape(cx, cy, w, h)
     case 'rounded': return roundedShape(cx, cy, w, h)
     case 'cylinder': return cylinderShape(cx, cy, w, h)
+    case 'circle': return circleShape(cx, cy, w, h)
     default: return boxShape(cx, cy, w, h)
   }
 }
@@ -59,29 +60,47 @@ function renderGroup(group: LayoutGroup): SVGElement {
 }
 
 function renderNode(node: LayoutNode): SVGElement {
-  const g = svgEl('g', { class: 'node' })
+  const g = svgEl('g', { class: 'node', 'data-id': node.id })
 
   const shape = nodeShapeEl(node.shape, node.x, node.y, node.width, node.height)
   shape.setAttribute('class', 'node-shape')
   g.appendChild(shape)
 
   const fontAttrs = fontToCss(NODE_FONT)
-  const text = svgEl('text', {
-    x: node.x,
-    y: node.y,
-    'text-anchor': 'middle',
-    'dominant-baseline': 'central',
-    class: 'node-label',
-    ...fontAttrs,
-  })
-  text.textContent = node.label
-  g.appendChild(text)
+  const lines = node.label.split('\n')
+  if (lines.length === 1) {
+    const text = svgEl('text', {
+      x: node.x,
+      y: node.y,
+      'text-anchor': 'middle',
+      'dominant-baseline': 'central',
+      class: 'node-label',
+      ...fontAttrs,
+    })
+    text.textContent = node.label
+    g.appendChild(text)
+  } else {
+    const lineHeight = 16
+    const startY = node.y - ((lines.length - 1) * lineHeight) / 2
+    for (let i = 0; i < lines.length; i++) {
+      const text = svgEl('text', {
+        x: node.x,
+        y: startY + i * lineHeight,
+        'text-anchor': 'middle',
+        'dominant-baseline': 'central',
+        class: 'node-label',
+        ...fontAttrs,
+      })
+      text.textContent = lines[i]
+      g.appendChild(text)
+    }
+  }
 
   return g
 }
 
 function renderEdge(edge: LayoutEdge): SVGElement {
-  const g = svgEl('g', { class: 'edge' })
+  const g = svgEl('g', { class: 'edge', 'data-from': edge.from, 'data-to': edge.to })
 
   const path = svgEl('path', {
     d: pointsToPath(edge.points),

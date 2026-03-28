@@ -3,6 +3,7 @@ import { layoutDiagram } from './layout.ts'
 import { renderDiagram } from './render.ts'
 import { layoutSequence } from './seq-layout.ts'
 import { renderSequence } from './seq-render.ts'
+import { initInteractivity } from './interact.ts'
 import { updateURL } from './url.ts'
 import { examples } from './examples.ts'
 
@@ -71,6 +72,7 @@ export function initEditor(): EditorAPI {
       } else {
         const layout = layoutDiagram(diagram)
         renderDiagram(layout, diagramPane)
+        initInteractivity(diagramPane, layout)
       }
 
       if (diagram.errors.length > 0) {

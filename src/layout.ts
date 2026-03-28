@@ -120,8 +120,9 @@ export function layoutDiagram(diagram: Diagram): LayoutResult {
   for (const node of nodeMap.values()) {
     const dims = measureNodeLabel(node.label)
     // Diamonds need more space
-    const w = node.shape === 'diamond' ? dims.width * 1.3 : dims.width
-    const h = node.shape === 'diamond' ? dims.height * 1.5 : dims.height
+    const needsExtra = node.shape === 'diamond' || node.shape === 'circle'
+    const w = needsExtra ? dims.width * 1.3 : dims.width
+    const h = needsExtra ? dims.height * 1.5 : dims.height
     g.setNode(node.id, { label: node.label, width: w, height: h })
     if (node.group) g.setParent(node.id, node.group)
   }

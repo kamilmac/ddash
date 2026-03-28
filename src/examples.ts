@@ -6,113 +6,220 @@ export interface Example {
 export const examples: Example[] = [
   {
     name: 'Simple Flow',
-    source: `@flow LR
-
-User -> Auth: login
-Auth -> |DB|: verify
-|DB| -> Auth: ok
-Auth -> User: token`,
+    source: `flowchart LR
+  User -->|login| Auth
+  Auth --> DB[(DB)]
+  DB -->|ok| Auth
+  Auth -->|token| User`,
   },
   {
     name: 'Architecture',
-    source: `@flow TB
+    source: `flowchart TB
+  Client -->|request| Gateway[API Gateway]
 
-Client -> API Gateway: request
+  subgraph Backend
+    Gateway --> Valid{Auth}
+    Valid -->|allowed| Users
+    Valid -->|denied| Gateway
+    Users --> DB[(Database)]
+  end
 
-Backend {
-  API Gateway -> <Auth>: validate
-  Auth -> Users: allowed
-  Auth -> API Gateway: denied
-  Users -> |Database|: query
-}
-
-API Gateway -> Client: response`,
+  Gateway -->|response| Client`,
   },
   {
     name: 'Microservices',
-    source: `@flow LR
+    source: `flowchart LR
+  Client --> LB([Load Balancer])
 
-Client -> (LB): request
+  subgraph Services
+    LB -->|route| Auth
+    LB -->|route| Products
+    Auth --> Redis[(Redis)]
+    Products --> Postgres[(Postgres)]
+    Products --> Cache([Cache])
+  end
 
-Services {
-  (LB) -> Auth: route
-  (LB) -> Products: route
-  Auth -> |Redis|: sessions
-  Products -> |Postgres|: query
-  Products -> (Cache): check
-}
-
-Auth -> Client: 401
-Products -> Client: response`,
+  Auth -->|401| Client
+  Products -->|response| Client`,
   },
   {
-    name: 'CI Pipeline',
-    source: `@flow LR
-
-Push -> Build: trigger
-Build -> <Tests>: run
-Tests -> Deploy: pass
-Tests -> Notify: fail
-Deploy -> |Registry|: publish
-Deploy -> Staging: release
-Staging -> <Approval>: review
-Approval -> Production: approved
-Approval -> Staging: rejected`,
+    name: 'CI/CD Pipeline',
+    source: `flowchart LR
+  Push -->|trigger| Build
+  Build -->|run| Tests{Tests}
+  Tests -->|pass| Deploy
+  Tests -->|fail| Notify
+  Deploy -->|publish| Registry[(Registry)]
+  Deploy -->|release| Staging
+  Staging -->|review| Approval{Approval}
+  Approval -->|approved| Production
+  Approval -->|rejected| Staging`,
   },
   {
-    name: 'Decision Flow',
-    source: `@flow TB
+    name: 'Decision Tree',
+    source: `flowchart TB
+  Request -->|check| Authn{Authenticated?}
 
-Request -> <Authenticated>: check
+  Authn -->|yes| Authz{Authorized?}
+  Authn -->|no| R401([401 Unauthorized])
 
-Authenticated -> <Authorized>: yes
-Authenticated -> (401 Unauthorized): no
+  Authz -->|yes| Process
+  Authz -->|no| R403([403 Forbidden])
 
-Authorized -> Process: yes
-Authorized -> (403 Forbidden): no
-
-Process -> |Database|: save
-Database -> (200 OK): success
-Database -> (500 Error): failure`,
+  Process -->|save| DB[(Database)]
+  DB -->|success| R200([200 OK])
+  DB -->|failure| R500([500 Error])`,
   },
   {
-    name: 'Sequence',
-    source: `@seq
-
-User -> Frontend: click buy
-Frontend -> API: POST /order
-API -> |DB|: insert order
-DB -> API: order_id
-API -> Payment: charge
-
-alt success {
-  Payment -> API: ok
-  API -> Frontend: 201 Created
-  Frontend -> User: confirmation
-} else {
-  Payment -> API: declined
-  API -> Frontend: 402
-  Frontend -> User: payment failed
-}`,
+    name: 'State Machine',
+    source: `flowchart LR
+  Idle -->|start| Loading
+  Loading -->|success| Ready
+  Loading -->|error| Error
+  Ready -->|edit| Dirty
+  Dirty -->|save| Saving
+  Saving -->|success| Ready
+  Saving -->|error| Error
+  Error -->|retry| Loading
+  Error -->|dismiss| Idle
+  Dirty -->|discard| Ready`,
   },
   {
-    name: 'Auth Sequence',
-    source: `@seq
+    name: 'Event-Driven',
+    source: `flowchart LR
+  Producer -->|publish| Queue[(Message Queue)]
 
-Client -> Gateway: request
-Gateway -> Auth: validate token
-Auth -> Auth: check expiry
+  subgraph Consumers
+    Queue -->|subscribe| OrderSvc[Order Service]
+    Queue -->|subscribe| NotifySvc[Notification Service]
+    Queue -->|subscribe| AnalyticsSvc[Analytics Service]
+  end
 
-alt valid {
-  Auth -> Gateway: 200 OK
-  Gateway -> API: forward
-  API -> |DB|: query
-  DB -> API: result
-  API -> Gateway: response
-  Gateway -> Client: 200
-} else {
-  Auth -> Gateway: 401
-  Gateway -> Client: unauthorized
-}`,
+  OrderSvc --> OrderDB[(Orders DB)]
+  NotifySvc -->|email| SMTP
+  NotifySvc -->|push| PushGW([Push Gateway])
+  AnalyticsSvc --> ClickHouse[(ClickHouse)]`,
+  },
+  {
+    name: 'Git Flow',
+    source: `flowchart LR
+  Main -->|branch| Feature
+  Feature -->|commit| Feature
+  Feature -->|PR| Review{Code Review}
+  Review -->|approved| Merge([Merge])
+  Review -->|changes| Feature
+  Merge --> Main
+  Main -->|tag| Release([Release])
+  Release -->|deploy| Prod`,
+  },
+  {
+    name: 'Entity Relationship',
+    source: `flowchart LR
+  User -->|has many| Order
+  Order -->|has many| LineItem[Line Item]
+  LineItem -->|belongs to| Product
+  Product -->|has many| Category
+  Order -->|has one| Payment
+  Payment -->|processed by| Stripe([Stripe API])
+  User -->|has one| Profile
+  Product -->|has many| Review
+  Review -->|belongs to| User`,
+  },
+  {
+    name: 'Network Topology',
+    source: `flowchart TB
+  Internet((Internet))
+
+  subgraph DMZ
+    LB([Load Balancer])
+    WAF{WAF}
+    Internet --> WAF
+    WAF -->|allow| LB
+    WAF -->|block| Deny([Blocked])
+  end
+
+  subgraph Private Network
+    LB --> Web1[Web Server 1]
+    LB --> Web2[Web Server 2]
+    Web1 --> AppDB[(Primary DB)]
+    Web2 --> AppDB
+    AppDB --> Replica[(Read Replica)]
+    Web1 --> Redis[(Redis Cache)]
+    Web2 --> Redis
+  end`,
+  },
+  {
+    name: 'Sequence: Auth',
+    source: `sequenceDiagram
+  Client ->> Gateway: request
+  Gateway ->> Auth: validate token
+  Auth ->> Auth: check expiry
+
+  alt valid
+    Auth -->> Gateway: 200 OK
+    Gateway ->> API: forward
+    API ->> DB: query
+    DB -->> API: result
+    API -->> Gateway: response
+    Gateway -->> Client: 200
+  else expired
+    Auth -->> Gateway: 401
+    Gateway -->> Client: unauthorized
+  end`,
+  },
+  {
+    name: 'Sequence: E-Commerce',
+    source: `sequenceDiagram
+  participant User
+  participant UI
+  participant API
+  participant DB
+  participant Payment
+  participant Email
+
+  User ->> UI: click buy
+  UI ->> API: POST /order
+  API ->> DB: insert order
+  DB -->> API: order_id
+  API ->> Payment: charge card
+
+  alt success
+    Payment -->> API: ok
+    API ->> DB: update status
+    API ->> Email: send confirmation
+    API -->> UI: 201 Created
+    UI -->> User: order confirmed
+  else declined
+    Payment -->> API: declined
+    API ->> DB: mark failed
+    API -->> UI: 402
+    UI -->> User: payment failed
+  end`,
+  },
+  {
+    name: 'Sequence: WebSocket',
+    source: `sequenceDiagram
+  participant Client
+  participant Server
+  participant Redis
+
+  Client ->> Server: WS handshake
+  Server -->> Client: 101 Switching Protocols
+  Server ->> Redis: subscribe channel
+
+  loop heartbeat
+    Client ->> Server: ping
+    Server -->> Client: pong
+  end
+
+  Redis -->> Server: new message
+  Server -->> Client: push update
+  Client ->> Server: ack
+
+  opt disconnect
+    Client ->> Server: close frame
+    Server ->> Redis: unsubscribe
+    Server -->> Client: close ack
+  end`,
   },
 ]

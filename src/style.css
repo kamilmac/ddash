@@ -312,6 +312,58 @@ button svg { width: 18px; height: 18px }
   fill: var(--group-text);
 }
 
+/* ---- Interactivity ---- */
+
+.node[data-id] .node-shape {
+  cursor: grab;
+  transition: filter .15s, stroke .15s;
+}
+
+.node[data-id]:hover .node-shape {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 40%, transparent));
+  stroke: var(--accent);
+}
+
+.node.highlighted .node-shape {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 50%, transparent));
+}
+
+.edge.highlighted .edge-path {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.edge.highlighted .edge-label {
+  fill: var(--accent);
+}
+
+.ddash-tooltip {
+  position: fixed;
+  background: var(--bg2, #1a1a1e);
+  color: var(--fg, #d4d4d8);
+  border: 1px solid var(--border, #2a2a30);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  pointer-events: none;
+  display: none;
+  max-width: 280px;
+  z-index: 999;
+  line-height: 1.4;
+  box-shadow: 0 4px 12px rgba(0,0,0,.4);
+}
+
+.ddash-tooltip strong {
+  color: var(--accent, #7aa2f7);
+}
+
+.ddash-tooltip-dim {
+  color: var(--fg3, #52525b);
+  font-size: 11px;
+}
+
 /* ---- Sequence diagram SVG styles ---- */
 
 .seq-lifeline {

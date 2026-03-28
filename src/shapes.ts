@@ -28,6 +28,11 @@ export function roundedShape(cx: number, cy: number, w: number, h: number): SVGE
   })
 }
 
+export function circleShape(cx: number, cy: number, w: number, h: number): SVGElement {
+  const r = Math.max(w, h) / 2
+  return svgEl('ellipse', { cx, cy, rx: r, ry: r })
+}
+
 export function cylinderShape(cx: number, cy: number, w: number, h: number): SVGElement {
   const rx = w / 2
   const ry = Math.min(8, h / 5)

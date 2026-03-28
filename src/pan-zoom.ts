@@ -61,6 +61,8 @@ export function initPanZoom(container: HTMLElement) {
 
   container.addEventListener('pointerdown', (e) => {
     if (e.button !== 0) return
+    // Don't start pan if clicking on a draggable node
+    if ((e.target as Element).closest('.node[data-id]')) return
     dragging = true
     lastX = e.clientX
     lastY = e.clientY

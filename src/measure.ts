@@ -25,9 +25,21 @@ export function measureText(text: string, font: string): { width: number; height
 }
 
 export function measureNodeLabel(label: string): { width: number; height: number } {
-  const m = measureText(label, NODE_FONT)
+  const lines = label.split('\n')
+  if (lines.length === 1) {
+    const m = measureText(label, NODE_FONT)
+    return {
+      width: Math.ceil(m.width + NODE_PAD_X * 2),
+      height: Math.ceil(m.height + NODE_PAD_Y * 2),
+    }
+  }
+  let maxWidth = 0
+  for (const line of lines) {
+    const m = measureText(line, NODE_FONT)
+    if (m.width > maxWidth) maxWidth = m.width
+  }
   return {
-    width: Math.ceil(m.width + NODE_PAD_X * 2),
-    height: Math.ceil(m.height + NODE_PAD_Y * 2),
+    width: Math.ceil(maxWidth + NODE_PAD_X * 2),
+    height: Math.ceil(lines.length * 16 + NODE_PAD_Y * 2),
   }
 }
