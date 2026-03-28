@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" style="background:#111113">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ddash</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9670;</text></svg>">
+</head>
+<body style="opacity:0">
+
+<!-- Floating icons (always visible) -->
+<div class="icon-left">
+  <button id="menuBtn" aria-label="Open editor">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+  </button>
+</div>
+<div class="icon-right">
+  <button id="copyBtn" aria-label="Copy link">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+  </button>
+  <button id="themeBtn" aria-label="Toggle theme">
+    <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+
+<!-- Diagram area (full screen) -->
+<div class="content" id="diagramPane">
+  <div id="emptyState" class="empty-state">
+    <h2>ddash</h2>
+    <p>Diagrams that live in the URL.</p>
+    <p class="empty-sub">Write text, get a diagram. Share the link.</p>
+  </div>
+</div>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay"></div>
+
+<!-- Sidebar editor -->
+<div class="sidebar" id="sidebar" hidden>
+  <div class="sidebar-header">
+    <span>Editor</span>
+    <div class="sidebar-header-right">
+      <div class="examples-wrap">
+        <button id="examplesBtn" class="sidebar-btn">
+          examples
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div id="examplesMenu" class="examples-menu"></div>
+      </div>
+      <button id="closeBtn" aria-label="Close editor">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="editor-wrap">
+    <textarea id="editor" class="editor" placeholder="@flow LR&#10;&#10;A -> B: hello&#10;B -> C" spellcheck="false"></textarea>
+    <div id="errorBar" class="error-bar" style="display:none"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script type="module" src="./main.ts"></script>
+</body>
+</html>

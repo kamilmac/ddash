@@ -1,0 +1,385 @@
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg: #111113;
+  --bg2: #1a1a1e;
+  --bg3: #252529;
+  --fg: #d4d4d8;
+  --fg2: #a1a1aa;
+  --fg3: #52525b;
+  --accent: #7aa2f7;
+  --border: #2a2a30;
+  --error: #f87171;
+  --radius: 6px;
+  --sidebar-w: min(480px, 85vw);
+
+  /* Diagram colors */
+  --node-fill: #1e1e24;
+  --node-stroke: #3a3a44;
+  --node-text: #d4d4d8;
+  --edge-stroke: #52525b;
+  --edge-label-bg: var(--bg);
+  --edge-label-text: #a1a1aa;
+  --group-fill: #16161a;
+  --group-stroke: #2a2a30;
+  --group-text: #71717a;
+  --arrow-fill: #71717a;
+}
+
+[data-theme="light"] {
+  --bg: #f5f5f5;
+  --bg2: #ffffff;
+  --bg3: #e8e8e8;
+  --fg: #1a1b26;
+  --fg2: #343b58;
+  --fg3: #9499b7;
+  --accent: #2e59a8;
+  --border: #d0d0d0;
+  --error: #dc2626;
+
+  --node-fill: #ffffff;
+  --node-stroke: #c0c0c8;
+  --node-text: #1a1b26;
+  --edge-stroke: #9499b7;
+  --edge-label-bg: var(--bg);
+  --edge-label-text: #52525b;
+  --group-fill: #eaeaee;
+  --group-stroke: #c8c8d0;
+  --group-text: #71717a;
+  --arrow-fill: #9499b7;
+}
+
+html { font-size: 16px }
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.7;
+  min-height: 100vh;
+  transition: background .2s, color .2s;
+}
+
+/* ---- Floating icon buttons ---- */
+
+.icon-left { position: fixed; top: 12px; left: 12px; z-index: 100 }
+.icon-right { position: fixed; top: 12px; right: 12px; z-index: 100; display: flex; gap: 4px }
+
+button {
+  background: none;
+  border: none;
+  color: var(--fg3);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius);
+  font-size: .875rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background .15s, color .15s;
+}
+
+button:hover { background: var(--bg3); color: var(--fg) }
+button svg { width: 18px; height: 18px }
+
+/* ---- Diagram content area ---- */
+
+.content {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: grab;
+  transition: margin-left .25s ease;
+}
+
+.content:active { cursor: grabbing }
+
+.diagram-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ---- Empty state ---- */
+
+.empty-state {
+  text-align: center;
+  color: var(--fg3);
+  user-select: none;
+}
+
+.empty-state h2 {
+  font-size: 1.5rem;
+  color: var(--fg2);
+  margin-bottom: .25rem;
+}
+
+.empty-state p {
+  font-size: .95rem;
+  margin-bottom: .25rem;
+}
+
+.empty-sub {
+  font-size: .8rem;
+  color: var(--fg3);
+}
+
+/* ---- Overlay ---- */
+
+.overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 200;
+  background: rgba(0,0,0,.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+
+.overlay.open { opacity: 1; pointer-events: all }
+
+/* ---- Sidebar / Editor ---- */
+
+.sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 300;
+  width: var(--sidebar-w);
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  transform: translateX(-100%);
+  transition: transform .25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.open { transform: translateX(0) }
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  min-height: 48px;
+}
+
+.sidebar-header span { font-weight: 600; font-size: .95rem }
+
+.sidebar-header-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sidebar-btn {
+  font-size: .8rem;
+  font-family: inherit;
+  padding: 4px 8px;
+}
+
+.sidebar-btn svg { width: 14px; height: 14px }
+
+.editor-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden }
+
+.editor {
+  flex: 1;
+  width: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: .875rem;
+  line-height: 1.6;
+  padding: 16px;
+  tab-size: 2;
+}
+
+.editor::placeholder { color: var(--fg3) }
+
+.error-bar {
+  padding: 4px 12px;
+  font-size: .75rem;
+  color: var(--error);
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+.syntax-hint {
+  padding: 6px 12px;
+  font-size: .7rem;
+  color: var(--fg3);
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: 'SF Mono', Consolas, monospace;
+}
+
+/* ---- Examples dropdown ---- */
+
+.examples-wrap { position: relative }
+
+.examples-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 160px;
+  z-index: 400;
+  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+}
+
+.examples-menu.open { display: block }
+
+.examples-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  font-size: .85rem;
+  font-family: inherit;
+}
+
+/* ---- Toast ---- */
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--bg2);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-size: .875rem;
+  opacity: 0;
+  transition: transform .3s, opacity .3s;
+  z-index: 999;
+  pointer-events: none;
+}
+
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1 }
+
+/* ---- SVG diagram styles ---- */
+
+.node-shape {
+  fill: var(--node-fill);
+  stroke: var(--node-stroke);
+  stroke-width: 1.5;
+}
+
+.node-label {
+  fill: var(--node-text);
+  pointer-events: none;
+}
+
+.edge-path {
+  stroke: var(--edge-stroke);
+  stroke-width: 1.5;
+}
+
+.edge-label {
+  fill: var(--edge-label-text);
+  pointer-events: none;
+}
+
+.edge-label-bg {
+  fill: var(--edge-label-bg);
+  opacity: 0.9;
+}
+
+.arrow-fill {
+  fill: var(--arrow-fill);
+}
+
+.group-rect {
+  fill: var(--group-fill);
+  stroke: var(--group-stroke);
+  stroke-width: 1;
+  stroke-dasharray: 4 2;
+}
+
+.group-label {
+  fill: var(--group-text);
+}
+
+/* ---- Sequence diagram SVG styles ---- */
+
+.seq-lifeline {
+  stroke: var(--edge-stroke);
+  stroke-width: 1;
+  stroke-dasharray: 6 4;
+  opacity: 0.5;
+}
+
+.seq-block-rect {
+  fill: none;
+  stroke: var(--group-stroke);
+  stroke-width: 1;
+}
+
+.seq-block-label-bg {
+  fill: var(--group-stroke);
+}
+
+.seq-block-type {
+  fill: var(--bg);
+  font-weight: 700;
+}
+
+.seq-block-cond {
+  fill: var(--group-text);
+}
+
+.seq-block-divider {
+  stroke: var(--group-stroke);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.seq-divider-line {
+  stroke: var(--edge-stroke);
+  stroke-width: 1;
+  stroke-dasharray: 8 4;
+  opacity: 0.6;
+}
+
+.seq-divider-bg {
+  fill: var(--bg);
+}
+
+.seq-divider-text {
+  fill: var(--fg3);
+}
+
+/* ---- Embed mode ---- */
+
+body.embed .icon-left,
+body.embed .icon-right,
+body.embed .sidebar,
+body.embed .overlay { display: none !important }
+
+/* ---- Desktop: sidebar pushes content ---- */
+
+@media (min-width: 641px) {
+  :root { --sidebar-w: clamp(400px, 42vw, 640px) }
+  .content { transition: margin-left .25s ease }
+  body.sidebar-open .content { margin-left: var(--sidebar-w) }
+  .overlay.open { opacity: 0; pointer-events: none }
+}
+
+/* ---- Mobile ---- */
+
+@media (max-width: 640px) {
+  .sidebar { width: 100vw }
+  .syntax-hint { display: none }
+}

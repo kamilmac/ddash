@@ -1,0 +1,19 @@
+{
+  "name": "ddash",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bunx --bun vite",
+    "build": "bunx --bun vite build && bun scripts/inline.ts",
+    "preview": "bunx --bun vite preview"
+  },
+  "devDependencies": {
+    "@types/dagre": "^0.7.52",
+    "typescript": "^5.7.0",
+    "vite": "6"
+  },
+  "dependencies": {
+    "dagre": "^0.8.5",
+    "lz-string": "^1.5.0"
+  }
+}
