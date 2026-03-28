@@ -8,5 +8,10 @@ export default defineConfig({
     emptyOutDir: true,
     assetsInlineLimit: Infinity,
     cssCodeSplit: false,
+    rollupOptions: {
+      output: {
+        inlineDynamicImports: true,
+      },
+    },
   },
 })
