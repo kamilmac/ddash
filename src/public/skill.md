@@ -13,6 +13,8 @@ Generate a diagram from text and open it in the browser. The diagram source is c
 
 **Base URL:** `https://ddash.zweibel-cocaine.com/`
 
+If arguments are passed to this skill, treat them as the diagram description and generate the diagram directly.
+
 ## How to Think About the Diagram
 
 Before writing syntax, make three decisions:
@@ -39,12 +41,12 @@ Before writing syntax, make three decisions:
 | Box | `Name` | Services, components, actors — the default |
 | Diamond | `<Name>` | Decision points, conditionals, validation gates |
 | Rounded | `(Name)` | Statuses, outcomes, results, load balancers |
-| Cylinder | `\|Name\|` | Databases, caches, any persistent storage |
+| Cylinder | `|Name|` | Databases, caches, any persistent storage |
 
 ## Design Rules
 
 - **Label every edge.** Unlabeled arrows are ambiguous. Even "request" or "data" is better than nothing.
-- **5–15 nodes is the sweet spot.** Under 5 is trivial. Over 15 gets unreadable. If larger, group related nodes.
+- **5-15 nodes is the sweet spot.** Under 5 is trivial. Over 15 gets unreadable. If larger, group related nodes.
 - **Groups for boundaries.** Use `{ }` groups to show system boundaries, deployment zones, or ownership domains — not just for visual nesting.
 - **One concept per diagram.** Don't cram auth flow + data pipeline + deployment topology into one diagram. Split them.
 - **Node names are labels.** They should be human-readable: `Auth Service` not `auth_svc`. The renderer handles spacing.
@@ -61,7 +63,15 @@ A <-> B                 # bidirectional
 A -- B                  # undirected
 A --> B                 # dashed (async, optional, external)
 A -x B                  # crossed (error, rejected, blocked)
-A -> B -> C -> D: done  # chain — creates A→B, B→C, C→D (label on last)
+A -> B -> C -> D: done  # chain — creates A->B, B->C, C->D (label on last)
+```
+
+### Shapes (on first mention only, bare name after)
+
+```
+<Decision>              # diamond
+(Cache)                 # rounded
+|Database|              # cylinder
 ```
 
 ### Groups
@@ -169,7 +179,34 @@ alt valid {
 }
 ```
 
-## Installation (for persistent use)
+## Opening the Diagram
+
+**Important: Do NOT show the URL to the user. Just open it silently.**
+
+1. Write the diagram source to `/tmp/ddash_content.txt`
+2. Run the helper script:
+
+```bash
+node ~/.claude/skills/ddash/open.mjs /tmp/ddash_content.txt
+```
+
+If the helper script is not installed locally, download and run it in one step:
+
+```bash
+curl -sf https://ddash.zweibel-cocaine.com/open.mjs -o /tmp/ddash_open.mjs && \
+node /tmp/ddash_open.mjs /tmp/ddash_content.txt
+```
+
+The helper script has lz-string compression embedded — zero dependencies beyond Node.js. Cross-platform (macOS, Linux, Windows).
+
+**Embed mode:** append `?embed` to the URL to strip all UI chrome (for iframes).
+
+## Limits
+
+- URL safe limit is ~2KB of compressed content (~100-200 lines of source)
+- If the diagram exceeds this, simplify: fewer labels, shorter names, remove comments
+
+## Installation
 
 To install ddash as a permanent skill with the helper script:
 
@@ -178,29 +215,3 @@ mkdir -p ~/.claude/skills/ddash && \
 curl -sf https://ddash.zweibel-cocaine.com/skill.md -o ~/.claude/skills/ddash/SKILL.md && \
 curl -sf https://ddash.zweibel-cocaine.com/open.mjs -o ~/.claude/skills/ddash/open.mjs
 ```
-
-After installation, use the local helper path in the "Opening the Diagram" step below.
-
-## Opening the Diagram
-
-Write the diagram source to `/tmp/ddash_content.txt`, then run the helper script:
-
-```bash
-# If installed locally:
-node ~/.claude/skills/ddash/open.mjs /tmp/ddash_content.txt
-
-# If not installed — one-liner that downloads and runs:
-curl -sf https://ddash.zweibel-cocaine.com/open.mjs -o /tmp/ddash_open.mjs && \
-node /tmp/ddash_open.mjs /tmp/ddash_content.txt
-```
-
-The helper script has lz-string compression embedded — zero dependencies beyond Node.js. Cross-platform (macOS, Linux, Windows).
-
-Do NOT show the URL to the user — just open it silently.
-
-**Embed mode:** append `?embed` to strip all UI chrome (for iframes).
-
-## Limits
-
-- URL safe limit is ~2KB of compressed content (~100-200 lines of source)
-- If the diagram exceeds this, simplify: fewer labels, shorter names, remove comments
