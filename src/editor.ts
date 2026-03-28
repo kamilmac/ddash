@@ -1,8 +1,5 @@
-import { parse } from './parser.ts'
-import { layoutDiagram } from './layout.ts'
-import { renderDiagram } from './render.ts'
-import { layoutSequence } from './seq-layout.ts'
-import { renderSequence } from './seq-render.ts'
+import { renderMermaid } from './mermaid-render.ts'
+import { extractInteractiveData } from './extract.ts'
 import { initInteractivity } from './interact.ts'
 import { updateURL } from './url.ts'
 import { examples } from './examples.ts'
@@ -13,6 +10,7 @@ const $ = (s: string) => document.getElementById(s)!
 
 export interface EditorAPI {
   setSource(source: string): void
+  rerender(): void
 }
 
 export function initEditor(): EditorAPI {
@@ -26,6 +24,7 @@ export function initEditor(): EditorAPI {
   const toast = $('toast')
 
   let debounceTimer: ReturnType<typeof setTimeout> | null = null
+  let renderGen = 0 // race condition guard for async renders
 
   // ---- Sidebar ----
   function openSidebar() {
@@ -51,7 +50,7 @@ export function initEditor(): EditorAPI {
   })
 
   // ---- Diagram processing ----
-  function processSource(source: string) {
+  async function processSource(source: string) {
     const trimmed = source.trim()
 
     if (!trimmed) {
@@ -63,29 +62,30 @@ export function initEditor(): EditorAPI {
     }
 
     emptyState.style.display = 'none'
+    const gen = ++renderGen
 
     try {
-      const diagram = parse(source)
-      if (diagram.type === 'seq') {
-        const seqLayout = layoutSequence(diagram)
-        renderSequence(seqLayout, diagramPane)
-      } else {
-        const layout = layoutDiagram(diagram)
-        renderDiagram(layout, diagramPane)
-        initInteractivity(diagramPane, layout)
+      const svgString = await renderMermaid(source)
+
+      // Stale render — a newer call already fired
+      if (gen !== renderGen) return
+
+      diagramPane.innerHTML = svgString
+
+      const svg = diagramPane.querySelector('svg') as SVGSVGElement | null
+      if (svg) {
+        svg.classList.add('diagram-svg')
+        svg.removeAttribute('style') // Mermaid sets max-width inline
+        padViewBox(svg, 40)
+        const data = extractInteractiveData(svg)
+        initInteractivity(diagramPane, data)
       }
 
-      if (diagram.errors.length > 0) {
-        errorBar.textContent = diagram.errors
-          .map(e => `Line ${e.line}: ${e.message}`)
-          .join(' | ')
-        errorBar.style.display = ''
-      } else {
-        errorBar.textContent = ''
-        errorBar.style.display = 'none'
-      }
+      errorBar.textContent = ''
+      errorBar.style.display = 'none'
     } catch (err) {
-      errorBar.textContent = `Render error: ${err instanceof Error ? err.message : 'unknown'}`
+      if (gen !== renderGen) return
+      errorBar.textContent = `${err instanceof Error ? err.message : 'Render error'}`
       errorBar.style.display = ''
     }
   }
@@ -157,8 +157,20 @@ export function initEditor(): EditorAPI {
     editor.value = source
     processSource(source)
     updateURL(source)
-
   }
 
-  return { setSource }
+  function rerender() {
+    processSource(editor.value)
+  }
+
+  return { setSource, rerender }
+}
+
+function padViewBox(svg: SVGSVGElement, padding: number) {
+  const vb = svg.getAttribute('viewBox')
+  if (!vb) return
+  const parts = vb.split(/[\s,]+/).map(Number)
+  if (parts.length !== 4) return
+  svg.setAttribute('viewBox',
+    `${parts[0] - padding} ${parts[1] - padding} ${parts[2] + padding * 2} ${parts[3] + padding * 2}`)
 }

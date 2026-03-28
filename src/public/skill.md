@@ -9,7 +9,7 @@ description: >
 
 # ddash — Interactive Diagrams in a URL
 
-Generate a diagram from Mermaid syntax and open it in the browser. The diagram source is compressed into the URL hash — no server, no storage. Diagrams are interactive: drag nodes, click to highlight, hover for tooltips, zoom and pan.
+Generate a diagram from Mermaid syntax and open it in the browser. The diagram source is compressed into the URL hash — no server, no storage. Diagrams are interactive: click to highlight, hover for tooltips, zoom and pan. Full Mermaid syntax supported.
 
 **Base URL:** `https://ddash.zweibel-cocaine.com/`
 
@@ -79,7 +79,9 @@ A -->|label| B            %% solid with label
 A -- label --> B          %% solid with label (alt syntax)
 A -.-> B                  %% dashed arrow
 A -.->|label| B           %% dashed with label
-A ==> B                   %% thick arrow (renders as solid)
+A --- B                   %% line (no arrow)
+A ---|label| B            %% line with label (no arrow)
+A ==> B                   %% thick arrow
 A <--> B                  %% bidirectional
 A --x B                   %% crossed (error, rejected)
 A --> B --> C              %% chain
@@ -98,6 +100,23 @@ end
 ```
 
 Subgraphs can nest. Nodes belong to the innermost subgraph where they first appear.
+
+### Style Directives
+
+```
+style A fill:#e8f4fd,stroke:#2196F3
+style mySubgraph fill:#fff3e0,stroke:#FF9800
+```
+
+Apply fill, stroke, color, stroke-width to individual nodes or subgraphs.
+
+### Multiline Labels
+
+Use `\n` inside quoted labels for line breaks:
+
+```
+A["First line\nSecond line\nThird line"]
+```
 
 ### Comments
 
@@ -142,8 +161,7 @@ Block types: `alt` (if/else), `opt` (optional), `loop` (repetition), `par` (para
 
 ## Interactivity
 
-Flowchart diagrams are interactive:
-- **Drag nodes** — grab any node and reposition it; edges follow automatically
+Diagrams are interactive:
 - **Click to highlight** — click a node to highlight it and all connected edges; click again or click empty space to deselect
 - **Hover tooltips** — hover a node to see its ID and connections
 - **Zoom** — mouse wheel to zoom in/out (zooms toward cursor)

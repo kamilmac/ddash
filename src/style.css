@@ -13,17 +13,6 @@
   --radius: 6px;
   --sidebar-w: min(480px, 85vw);
 
-  /* Diagram colors */
-  --node-fill: #1e1e24;
-  --node-stroke: #3a3a44;
-  --node-text: #d4d4d8;
-  --edge-stroke: #52525b;
-  --edge-label-bg: var(--bg);
-  --edge-label-text: #a1a1aa;
-  --group-fill: #16161a;
-  --group-stroke: #2a2a30;
-  --group-text: #71717a;
-  --arrow-fill: #71717a;
 }
 
 [data-theme="light"] {
@@ -37,16 +26,6 @@
   --border: #d0d0d0;
   --error: #dc2626;
 
-  --node-fill: #ffffff;
-  --node-stroke: #c0c0c8;
-  --node-text: #1a1b26;
-  --edge-stroke: #9499b7;
-  --edge-label-bg: var(--bg);
-  --edge-label-text: #52525b;
-  --group-fill: #eaeaee;
-  --group-stroke: #c8c8d0;
-  --group-text: #71717a;
-  --arrow-fill: #9499b7;
 }
 
 html { font-size: 16px }
@@ -269,74 +248,40 @@ button svg { width: 18px; height: 18px }
 
 .toast.show { transform: translateX(-50%) translateY(0); opacity: 1 }
 
-/* ---- SVG diagram styles ---- */
+/* ---- Mermaid diagram overrides ---- */
 
-.node-shape {
-  fill: var(--node-fill);
-  stroke: var(--node-stroke);
-  stroke-width: 1.5;
-}
-
-.node-label {
-  fill: var(--node-text);
-  pointer-events: none;
-}
-
-.edge-path {
-  stroke: var(--edge-stroke);
-  stroke-width: 1.5;
-}
-
-.edge-label {
-  fill: var(--edge-label-text);
-  pointer-events: none;
-}
-
-.edge-label-bg {
-  fill: var(--edge-label-bg);
-  opacity: 0.9;
-}
-
-.arrow-fill {
-  fill: var(--arrow-fill);
-}
-
-.group-rect {
-  fill: var(--group-fill);
-  stroke: var(--group-stroke);
-  stroke-width: 1;
-  stroke-dasharray: 4 2;
-}
-
-.group-label {
-  fill: var(--group-text);
+.diagram-svg {
+  width: 100%;
+  height: 100%;
 }
 
 /* ---- Interactivity ---- */
 
-.node[data-id] .node-shape {
-  cursor: grab;
-  transition: filter .15s, stroke .15s;
+.node[data-id] {
+  cursor: pointer;
+  transition: filter .15s;
 }
 
-.node[data-id]:hover .node-shape {
+.node[data-id]:hover {
   filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 40%, transparent));
-  stroke: var(--accent);
 }
 
-.node.highlighted .node-shape {
-  stroke: var(--accent);
-  stroke-width: 2.5;
+.node.highlighted {
   filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 50%, transparent));
 }
 
-.edge.highlighted .edge-path {
-  stroke: var(--accent);
-  stroke-width: 2;
+.node.highlighted rect,
+.node.highlighted polygon,
+.node.highlighted circle,
+.node.highlighted ellipse,
+.node.highlighted path {
+  stroke: var(--accent) !important;
+  stroke-width: 2.5;
 }
 
-.edge.highlighted .edge-label {
-  fill: var(--accent);
+.edgePath.highlighted path {
+  stroke: var(--accent) !important;
+  stroke-width: 2;
 }
 
 .ddash-tooltip {
@@ -364,54 +309,6 @@ button svg { width: 18px; height: 18px }
   font-size: 11px;
 }
 
-/* ---- Sequence diagram SVG styles ---- */
-
-.seq-lifeline {
-  stroke: var(--edge-stroke);
-  stroke-width: 1;
-  stroke-dasharray: 6 4;
-  opacity: 0.5;
-}
-
-.seq-block-rect {
-  fill: none;
-  stroke: var(--group-stroke);
-  stroke-width: 1;
-}
-
-.seq-block-label-bg {
-  fill: var(--group-stroke);
-}
-
-.seq-block-type {
-  fill: var(--bg);
-  font-weight: 700;
-}
-
-.seq-block-cond {
-  fill: var(--group-text);
-}
-
-.seq-block-divider {
-  stroke: var(--group-stroke);
-  stroke-width: 1;
-  stroke-dasharray: 4 3;
-}
-
-.seq-divider-line {
-  stroke: var(--edge-stroke);
-  stroke-width: 1;
-  stroke-dasharray: 8 4;
-  opacity: 0.6;
-}
-
-.seq-divider-bg {
-  fill: var(--bg);
-}
-
-.seq-divider-text {
-  fill: var(--fg3);
-}
 
 /* ---- Embed mode ---- */
 
