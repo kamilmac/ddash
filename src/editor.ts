@@ -157,7 +157,7 @@ export function initEditor(): EditorAPI {
     editor.value = source
     processSource(source)
     updateURL(source)
-    if (!sidebar.classList.contains('open')) openSidebar()
+
   }
 
   return { setSource }
