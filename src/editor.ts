@@ -63,23 +63,28 @@ export function initEditor(): EditorAPI {
 
     emptyState.style.display = 'none'
 
-    const diagram = parse(source)
-    if (diagram.type === 'seq') {
-      const seqLayout = layoutSequence(diagram)
-      renderSequence(seqLayout, diagramPane)
-    } else {
-      const layout = layoutDiagram(diagram)
-      renderDiagram(layout, diagramPane)
-    }
+    try {
+      const diagram = parse(source)
+      if (diagram.type === 'seq') {
+        const seqLayout = layoutSequence(diagram)
+        renderSequence(seqLayout, diagramPane)
+      } else {
+        const layout = layoutDiagram(diagram)
+        renderDiagram(layout, diagramPane)
+      }
 
-    if (diagram.errors.length > 0) {
-      errorBar.textContent = diagram.errors
-        .map(e => `Line ${e.line}: ${e.message}`)
-        .join(' | ')
+      if (diagram.errors.length > 0) {
+        errorBar.textContent = diagram.errors
+          .map(e => `Line ${e.line}: ${e.message}`)
+          .join(' | ')
+        errorBar.style.display = ''
+      } else {
+        errorBar.textContent = ''
+        errorBar.style.display = 'none'
+      }
+    } catch (err) {
+      errorBar.textContent = `Render error: ${err instanceof Error ? err.message : 'unknown'}`
       errorBar.style.display = ''
-    } else {
-      errorBar.textContent = ''
-      errorBar.style.display = 'none'
     }
   }
 

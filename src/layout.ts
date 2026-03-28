@@ -126,14 +126,30 @@ export function layoutDiagram(diagram: Diagram): LayoutResult {
     if (node.group) g.setParent(node.id, node.group)
   }
 
-  // Add edges
+  // Add edges — skip edges where a node ID collides with a group ID
+  const groupIds = new Set(groups.map(gr => gr.id))
   for (const edge of edges) {
-    if (nodeMap.has(edge.from) && nodeMap.has(edge.to)) {
+    if (nodeMap.has(edge.from) && nodeMap.has(edge.to) &&
+        !groupIds.has(edge.from) && !groupIds.has(edge.to)) {
       g.setEdge(edge.from, edge.to, { label: edge.label || '' })
     }
   }
 
-  dagre.layout(g)
+  try {
+    dagre.layout(g)
+  } catch {
+    // dagre can crash on certain compound graph configurations
+    // Fall back to a simple grid layout
+    let x = 30, y = 30
+    const fallbackNodes: LayoutNode[] = []
+    for (const node of nodeMap.values()) {
+      const dims = measureNodeLabel(node.label)
+      fallbackNodes.push({ id: node.id, label: node.label, shape: node.shape, x, y, width: dims.width, height: dims.height })
+      x += dims.width + 40
+      if (x > 800) { x = 30; y += 60 }
+    }
+    return { nodes: fallbackNodes, edges: [], groups: [], width: x + 30, height: y + 60 }
+  }
 
   // Extract positioned nodes
   const layoutNodes: LayoutNode[] = []
